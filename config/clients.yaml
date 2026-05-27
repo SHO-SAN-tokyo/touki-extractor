@@ -1,0 +1,27 @@
+# クライアント別設定
+# 将来の横展開用: クライアントIDで切り替え可能にする
+
+harada_tatemono:
+  name: 原田建物株式会社
+  prefecture: osaka
+  # デフォルト絞り込み条件
+  default_filters:
+    categories:        # 申請区分
+      - 単独
+      - 連先
+      - 連続
+    purposes:          # 登記目的キーワード(部分一致)
+      - 相続
+    property_types:    # 不動産種別
+      - 土地
+  # Excel出力設定
+  excel:
+    sheet_name: 相続案件リスト
+    column_order:
+      - 受付番号
+      - 受付日
+      - 区分
+      - 目的
+      - 種別
+      - 所在
+      - 備考

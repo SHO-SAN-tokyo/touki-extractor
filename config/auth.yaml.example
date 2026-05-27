@@ -1,0 +1,20 @@
+# 認証設定テンプレート
+# このファイルをコピーして config/auth.yaml を作成してください。
+# パスワードは bcrypt ハッシュで設定します:
+#   python -c "import streamlit_authenticator as stauth; print(stauth.Hasher.hash('your_password'))"
+
+credentials:
+  usernames:
+    user1:
+      name: 担当者氏名
+      email: user1@example.com
+      password: "$2b$12$..."   # bcrypt ハッシュ
+    user2:
+      name: 担当者氏名2
+      email: user2@example.com
+      password: "$2b$12$..."
+
+cookie:
+  name: touki_auth
+  key: "ランダムな秘密鍵 (secrets.token_urlsafe(32) で生成)"
+  expiry_days: 30

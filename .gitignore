@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Secrets / Auth
+.streamlit/secrets.toml
+config/auth.yaml
+
+# Upload temp / sample data (実データはリポジトリに含めない)
+uploads/
+samples/*.pdf
+samples/*_raw.txt
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
