@@ -295,11 +295,16 @@ def parse_entries(
 # ---------------------------------------------------------------------------
 
 
-def extract_lines_from_pdf(pdf_path: Path) -> list[str]:
+def extract_lines_from_pdf(
+    pdf_path: Path,
+    on_page: Optional[callable] = None,
+) -> list[str]:
     """PDFファイルの全ページからテキスト行を抽出する。
 
     Args:
         pdf_path: 読み込み対象のPDFファイルパス。
+        on_page: ページ処理後に呼ばれるコールバック (page_num: int, total: int) -> None。
+                 進捗表示などに使用する。
 
     Returns:
         全ページのテキスト行を連結したリスト。
@@ -312,24 +317,31 @@ def extract_lines_from_pdf(pdf_path: Path) -> list[str]:
 
     lines: list[str] = []
     with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
+        total = len(pdf.pages)
+        for i, page in enumerate(pdf.pages):
             text = page.extract_text(x_tolerance=3, y_tolerance=3)
             if text:
                 lines.extend(text.splitlines())
+            if on_page is not None:
+                on_page(i + 1, total)
 
     return lines
 
 
-def parse_pdf(pdf_path: Path) -> list[ParsedEntry]:
+def parse_pdf(
+    pdf_path: Path,
+    on_page: Optional[callable] = None,
+) -> list[ParsedEntry]:
     """PDFファイルを解析して ParsedEntry のリストを返す。
 
     Args:
         pdf_path: 解析対象のPDFファイルパス。
+        on_page: ページ処理後に呼ばれるコールバック (page_num: int, total: int) -> None。
 
     Returns:
         抽出されたエントリのリスト。
     """
-    lines = extract_lines_from_pdf(pdf_path)
+    lines = extract_lines_from_pdf(pdf_path, on_page=on_page)
     return parse_entries(lines, source_file=pdf_path.name)
 
 

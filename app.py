@@ -82,7 +82,7 @@ authenticator = stauth.Authenticate(
     auto_hash=False,   # auth.yaml には bcrypt ハッシュ済みパスワードを保存
 )
 
-name, auth_status, username = authenticator.login(
+authenticator.login(
     location="main",
     fields={
         "Form name": "不動産受付帳 抽出ツール",
@@ -91,6 +91,11 @@ name, auth_status, username = authenticator.login(
         "Login":     "ログイン",
     },
 )
+
+# 0.4.x では login() の戻り値が None になる場合があるため session_state から読む
+auth_status = st.session_state.get("authentication_status")
+name        = st.session_state.get("name", "")
+username    = st.session_state.get("username", "")
 
 if auth_status is False:
     st.error("ユーザー名またはパスワードが正しくありません。")
@@ -209,11 +214,22 @@ if uploaded_files:
         bar = st.progress(0, text="PDF を解析中…")
         total = len(uploaded_files)
         for i, uf in enumerate(uploaded_files):
+            file_offset = i / total        # このファイル開始時点の全体進捗
+            file_share  = 1.0 / total      # このファイルが全体に占める割合
             try:
                 with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                     tmp.write(uf.getvalue())
                     tmp_path = Path(tmp.name)
-                parsed = parse_pdf(tmp_path)
+
+                def _on_page(page_num: int, page_total: int, _uf=uf,
+                             _off=file_offset, _share=file_share) -> None:
+                    pct = _off + _share * (page_num / page_total)
+                    bar.progress(
+                        min(pct, 1.0),
+                        text=f"解析中: {_uf.name} ({page_num}/{page_total} ページ)",
+                    )
+
+                parsed = parse_pdf(tmp_path, on_page=_on_page)
                 for e in parsed:
                     e.source_file = uf.name
                 entries.extend(parsed)
@@ -229,7 +245,7 @@ if uploaded_files:
                     tmp_path.unlink(missing_ok=True)
                 except Exception:
                     pass
-            bar.progress((i + 1) / total, text=f"解析中: {uf.name}")
+        bar.progress(1.0, text="解析完了")
         bar.empty()
 
         st.session_state["_file_key"]      = new_key
