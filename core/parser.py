@@ -322,6 +322,9 @@ def extract_lines_from_pdf(
             text = page.extract_text(x_tolerance=3, y_tolerance=3)
             if text:
                 lines.extend(text.splitlines())
+            # ページ単位でキャッシュ (_objects, _layout, textmap) を解放し
+            # メモリ使用量のピークを抑える。多ページPDFで OOM 落ちを防ぐ目的。
+            page.close()
             if on_page is not None:
                 on_page(i + 1, total)
 
